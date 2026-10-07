@@ -1,26 +1,122 @@
-@import "tailwindcss";
+/* Fonts (Bodoni Moda + Inter) load via <link> in app/layout.tsx — the Turbopack Tailwind loader drops remote @imports. */
+@import 'tailwindcss';
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  --font-display: 'Bodoni Moda', Georgia, serif;
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+
+  /* Ink — text/structure */
+  --color-ink: #0C090E;
+  --color-ink-soft: #2A2523;
+  --color-ink-muted: #6B625F;
+  --color-ink-faint: #9C9390;
+
+  /* Hairlines */
+  --color-line: #E6DEDA;
+  --color-line-soft: #F1EBE7;
+  --color-line-strong: #C9B8B5;
+
+  /* Ivory surfaces */
+  --color-ivory: #F7F3F0;
+  --color-ivory-deep: #EFE8E3;
+
+  /* Blush accent */
+  --color-blush-50: #FBF5F4;
+  --color-blush-100: #F8EAE9;
+  --color-blush-200: #F1D6D5;
+  --color-blush-300: #E8B2B2;
+  --color-blush-400: #E8B2B2;
+  --color-blush-500: #C98A8A;
+  --color-blush-600: #8F5757;
+
+  /* Violet (CTA — points to noir scale) */
+  --color-violet-50: #F5F1EE;
+  --color-violet-100: #EBE4E0;
+  --color-violet-200: #D8CDC9;
+  --color-violet-300: #C9B8B5;
+  --color-violet-400: #7C7370;
+  --color-violet-500: #3A3432;
+  --color-violet-600: #0C090E;
+  --color-violet-700: #1C1918;
+  --color-violet-800: #0C090E;
+  --color-violet-900: #0C090E;
+
+  /* Status */
+  --color-success-50: #F0F5F1;
+  --color-success-500: #3D6B4F;
+  --color-success-600: #2C5039;
+  --color-warn-50: #F8F3EA;
+  --color-warn-500: #8C6A2B;
+  --color-warn-600: #6B4F1C;
+  --color-danger-50: #F9F0EE;
+  --color-danger-500: #9C3B30;
+  --color-danger-600: #7A2C23;
+
+  /* Border radius */
+  --radius: 4px;
+  --radius-md: 5px;
+  --radius-lg: 6px;
+  --radius-xl: 8px;
+  --radius-2xl: 10px;
+  --radius-3xl: 14px;
+  --radius-4xl: 18px;
+
+  /* Shadows */
+  --shadow-soft: 0 1px 2px rgba(0,0,0,0.03);
+  --shadow-lift: 0 2px 6px rgba(0,0,0,0.05), 0 18px 40px -28px rgba(0,0,0,0.28);
+  --shadow-card: 0 30px 70px -34px rgba(0,0,0,0.45);
+  --shadow-inset: inset 0 0 0 1px rgba(0,0,0,0.06);
+
+  /* Easing */
+  --ease-premium: cubic-bezier(0.23, 1, 0.32, 1);
+
+  /* Tracking */
+  --tracking-luxe: 0.12em;
+
+  /* Animations */
+  --animate-shimmer: shimmer 1.6s linear infinite;
+  --animate-breathe: breathe 3.2s cubic-bezier(0.23, 1, 0.32, 1) infinite;
+  --animate-sweep: sweep 2.4s cubic-bezier(0.23, 1, 0.32, 1) infinite;
+  /* backwards (not both): no transform lingers after the animation, so fixed-position children aren't trapped. */
+  --animate-rise: rise 0.4s cubic-bezier(0.23, 1, 0.32, 1) backwards;
+  --animate-fade: fade 0.2s ease-out both;
+  --animate-slide-left: slide-left 0.32s cubic-bezier(0.23, 1, 0.32, 1) both;
+  --animate-slide-right: slide-right 0.32s cubic-bezier(0.23, 1, 0.32, 1) both;
+  --animate-pop: pop 0.18s cubic-bezier(0.23, 1, 0.32, 1) both;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+@keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+@keyframes breathe { 0%, 100% { transform: scale(1); opacity: 0.55; } 50% { transform: scale(1.06); opacity: 0.9; } }
+@keyframes sweep { 0% { transform: translateY(-110%); } 100% { transform: translateY(210%); } }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+@keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slide-left { from { transform: translateX(-100%); } to { transform: none; } }
+@keyframes slide-right { from { transform: translateX(100%); } to { transform: none; } }
+@keyframes pop { from { opacity: 0; transform: translateY(-4px) scale(0.98); } to { opacity: 1; transform: none; } }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+html, body { height: 100%; }
+html { color-scheme: light; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility; }
+body { background: var(--color-ivory); color: var(--color-ink); }
+::selection { background: var(--color-blush-200); color: var(--color-ink); }
+
+/* Thin, quiet scrollbars for inner scroll areas */
+.scroll-thin { scrollbar-width: thin; scrollbar-color: var(--color-line) transparent; }
+.scroll-thin::-webkit-scrollbar { width: 6px; height: 6px; }
+.scroll-thin::-webkit-scrollbar-thumb { background: var(--color-line); border-radius: 999px; }
+.scroll-thin::-webkit-scrollbar-thumb:hover { background: var(--color-line-strong); }
+.scroll-thin::-webkit-scrollbar-track { background: transparent; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+}
+* { font-family: var(--font-sans); }
+.font-display { font-family: var(--font-display); }
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Grain texture (auth screens) */
+.bg-grain {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
 }
