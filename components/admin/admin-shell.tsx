@@ -17,7 +17,7 @@ const NAV_GROUPS: { label: string; items: { to: string; label: string; Icon: Ico
   {
     label: 'Operations',
     items: [
-      { to: '/admin/dashboard', label: 'Overview', Icon: LayoutDashboardIcon },
+      { to: '/', label: 'Overview', Icon: LayoutDashboardIcon },
       { to: '/admin/orders', label: 'Orders', Icon: ShoppingBagIcon, badge: 'orders' },
     ],
   },
@@ -52,7 +52,8 @@ const NAV_GROUPS: { label: string; items: { to: string; label: string; Icon: Ico
   },
 ]
 
-const isActive = (pathname: string, to: string) => pathname === to || pathname.startsWith(to + '/')
+const isActive = (pathname: string, to: string) =>
+  to === '/' ? pathname === '/' : pathname === to || pathname.startsWith(to + '/')
 
 function currentLocation(pathname: string) {
   for (const group of NAV_GROUPS) {
@@ -240,7 +241,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       {/* Desktop sidebar */}
       <aside className="hidden w-64 shrink-0 flex-col border-r border-line bg-white lg:flex">
         <div className="flex h-20 shrink-0 items-center justify-center border-b border-line px-5">
-          <Link href="/admin/dashboard" aria-label="The Cut — Overview" className={cn('rounded-lg', focusRing)}>
+          <Link href="/" aria-label="The Cut — Overview" className={cn('rounded-lg', focusRing)}>
             <BrandLogo imgClassName="h-16" />
           </Link>
         </div>
