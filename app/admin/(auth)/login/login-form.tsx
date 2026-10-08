@@ -27,7 +27,7 @@ export function LoginForm() {
   }, [searchParams])
 
   const next = searchParams.get('next')
-  const destination = next && next.startsWith('/admin/') ? next : '/admin/dashboard'
+  const destination = next && next.startsWith('/admin/') && next !== '/admin/dashboard' && next !== '/admin' ? next : '/'
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -40,14 +40,14 @@ export function LoginForm() {
         body: JSON.stringify({ email, password }),
       })
       if (!res.ok) {
-        setError('Invalid admin credentials')
+        const data = await res.json().catch(() => ({}))
+        setError(data.error || 'Invalid admin credentials')
         setLoading(false)
         return
       }
-      router.replace(destination)
-      router.refresh()
+      window.location.href = destination
     } catch {
-      setError('Invalid admin credentials')
+      setError('An error occurred during sign in. Please try again.')
       setLoading(false)
     }
   }

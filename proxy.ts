@@ -10,12 +10,14 @@ export function proxy(request: NextRequest) {
   if (PUBLIC_PATHS.includes(pathname)) return NextResponse.next()
   if (!request.cookies.has('tc_admin_session')) {
     const url = new URL('/admin/login', request.url)
-    url.searchParams.set('next', pathname)
+    if (pathname !== '/' && pathname !== '/admin/dashboard' && pathname !== '/admin') {
+      url.searchParams.set('next', pathname)
+    }
     return NextResponse.redirect(url)
   }
   return NextResponse.next()
 }
 
 export const config = {
-  matcher: ['/admin/:path*'],
+  matcher: ['/', '/admin/:path*'],
 }

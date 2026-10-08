@@ -7,7 +7,7 @@ import { LoginForm } from './login-form'
 export const instant = false
 
 export default async function LoginPage() {
-  if (await getCurrentAdmin()) redirect('/admin/dashboard')
+  if (await getCurrentAdmin()) redirect('/')
   return (
     <Suspense>
       <LoginForm />
