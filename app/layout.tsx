@@ -1,3 +1,4 @@
+import AppProviders from '@/components/providers/AppProviders'
 import './globals.css'
 import { Toaster } from 'sonner'
 export const metadata = { title: 'The Cut — Admin', description: 'Platform operations' }
@@ -17,7 +18,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       {/* Browser extensions (e.g. ColorZilla's cz-shortcut-listen) inject attributes on <body> */}
       <body className="h-full" suppressHydrationWarning>
         <Toaster position="top-center" offset={72} toastOptions={{ style: { borderRadius: '14px' } }} />
-        {children}
+        <AppProviders>{children}</AppProviders>
       </body>
     </html>
   )

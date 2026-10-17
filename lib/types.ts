@@ -4,8 +4,9 @@ export interface Order {
   id: string; wigId: string; vendorId: string; quantity: number; total: number
   fulfillment: 'delivery' | 'pickup'; shippingMethod: string; status: OrderStatus
   placedAt: string; eta: string; address?: string; pickupDate?: string; pickupTime?: string
-  paymentLast4: string; customerName: string; reviewed: boolean
+  paymentLast4: string; customerName: string; customerEmail?: string; customerPhone?: string; reviewed: boolean
   returnRequested?: boolean; returnStatus?: ReturnStatus; returnReason?: string
+  refundedAmount?: number; refundType?: 'full' | 'partial'; refundReason?: string; flaggedForReview?: boolean
 }
 export interface AppNotification { id: string; kind: string; title: string; body: string; at: string; read: boolean; href?: string }
 export interface AdminAccount { id: string; name: string; email: string; role: string; avatar: string }

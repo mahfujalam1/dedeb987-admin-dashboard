@@ -31,7 +31,7 @@ export function DashboardView() {
       />
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Platform GMV" value={currency(gmv)} hint="Completed orders" to="/admin/analytics" />
+        <StatCard label="Total Sales" value={currency(gmv)} hint="Completed orders" to="/admin/analytics" />
         <StatCard label="Pending orders" value={String(pendingOrders)} hint="Awaiting vendor action" to="/admin/orders" />
         <StatCard label="Open disputes" value={String(openDisputes.length)} hint={`${openSignals} risk signals`} tone={openDisputes.length > 0 ? 'warn' : 'neutral'} to="/admin/disputes" />
         <StatCard label="Vendor reviews" value={String(vendorReviews)} hint="Pending verification" tone={vendorReviews > 0 ? 'warn' : 'neutral'} to="/admin/vendors" />

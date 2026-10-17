@@ -70,7 +70,7 @@ export default function VendorsPage() {
                 </div>
                 <p className="mt-0.5 text-[12.5px] text-ink-muted">{v.plan} plan · Joined {v.joinedAt}</p>
                 <div className="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-[12.5px] text-ink-muted">
-                  <span>GMV: <span className="font-medium text-ink">{currency(v.gmv)}</span></span>
+                  <span>Total Sales: <span className="font-medium text-ink">{currency(v.gmv)}</span></span>
                   <span>Products: <span className="font-medium text-ink">{v.activeProducts}</span></span>
                   <span>Open orders: <span className="font-medium text-ink">{v.openOrders}</span></span>
                 </div>

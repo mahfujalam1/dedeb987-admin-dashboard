@@ -3,5 +3,6 @@ export const vendors = [
   { id: 'v-02', name: 'Velvet Row' },
   { id: 'v-03', name: 'Root & Reign' },
   { id: 'v-04', name: 'Atelier Blanc' },
+  { id: 'v-05', name: 'Crown & Silk Studio' },
 ]
 export const vendorById = (id: string) => vendors.find(v => v.id === id)

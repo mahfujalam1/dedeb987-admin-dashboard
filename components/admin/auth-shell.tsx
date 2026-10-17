@@ -45,10 +45,7 @@ export function AuthShell({ title, subtitle, step, footer, children }: {
           </div>
 
           {footer}
-          <p className="mt-6 flex items-center justify-center gap-1.5 text-[11.5px] text-ink-faint">
-            <LockIcon className="h-3 w-3" aria-hidden />
-            Restricted area · authorised staff only
-          </p>
+
         </div>
       </section>
     </main>

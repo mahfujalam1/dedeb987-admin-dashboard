@@ -28,11 +28,12 @@ interface AdminContextValue {
   suspendVendor: (id: string, suspended?: boolean) => void
   resolveDispute: (id: string, res: string) => void
   escalateDispute: (id: string) => void
+  deescalateDispute: (id: string) => void
   resolveRiskSignal: (id: string) => void
   dismissRiskSignal: (id: string) => void
   banUser: (id: string) => void
   unbanUser: (id: string) => void
-  adminActionOrder: (id: string, action: string) => void
+  adminActionOrder: (id: string, action: string, payload?: any) => void
   addCampaign: (c: NewCampaign) => void
   launchCampaign: (c: NewCampaign) => void
   updateCampaign: (id: string, patch: Partial<Campaign>) => void
@@ -60,6 +61,7 @@ export function AdminProvider({ initialAccount, children }: { initialAccount: Ad
   const [collections, setCollections] = useState(seedCollections)
   const [adminNotifs, setAdminNotifs] = useState(adminNotifications)
   const [account, setAccount] = useState(initialAccount)
+  const [orders, setOrders] = useState(platformOrders)
 
   const verifyVendor = useCallback((id: string, decision: 'approved' | 'rejected') => {
     setVendors(vs => vs.map(v => v.id === id ? { ...v, verification: decision, status: decision === 'approved' ? 'active' : 'pending' } : v))
@@ -81,6 +83,9 @@ export function AdminProvider({ initialAccount, children }: { initialAccount: Ad
   const escalateDispute = useCallback((id: string) => {
     setDisputes(ds => ds.map(d => d.id === id ? { ...d, status: 'escalated' } : d))
   }, [])
+  const deescalateDispute = useCallback((id: string) => {
+    setDisputes(ds => ds.map(d => d.id === id ? { ...d, status: 'reviewing' } : d))
+  }, [])
 
   const resolveRiskSignal = useCallback((id: string) => {
     setRiskSignals(rs => rs.map(r => r.id === id ? { ...r, status: 'resolved' } : r))
@@ -94,8 +99,30 @@ export function AdminProvider({ initialAccount, children }: { initialAccount: Ad
     setUsers(us => us.map(u => u.id === id ? { ...u, status: 'active' } : u))
   }, [])
 
-  // No-op stub, matching the original app.
-  const adminActionOrder: AdminContextValue['adminActionOrder'] = useCallback(() => {}, [])
+  const adminActionOrder: AdminContextValue['adminActionOrder'] = useCallback((id: string, action: string, payload?: any) => {
+    setOrders(os => os.map(o => {
+      if (o.id !== id) return o
+      if (action === 'refund') {
+        const refundAmt = payload?.amount ?? o.total
+        const isPartial = refundAmt < o.total
+        return {
+          ...o,
+          status: isPartial ? o.status : 'cancelled',
+          returnStatus: 'refunded',
+          refundedAmount: (o.refundedAmount ?? 0) + refundAmt,
+          refundType: isPartial ? 'partial' : 'full',
+          refundReason: payload?.reason,
+        }
+      }
+      if (action === 'force_cancel') {
+        return { ...o, status: 'cancelled' }
+      }
+      if (action === 'flag_for_review') {
+        return { ...o, flaggedForReview: true }
+      }
+      return o
+    }))
+  }, [])
 
   const addCampaign = useCallback((c: NewCampaign) => {
     setCampaigns(cs => [...cs, { ...c, id: c.id ?? `cp-${Date.now()}` }])
@@ -151,8 +178,8 @@ export function AdminProvider({ initialAccount, children }: { initialAccount: Ad
 
   return (
     <AdminContext.Provider value={{
-      allOrders: platformOrders, vendors, users, disputes, riskSignals, campaigns, collections, adminNotifs, account,
-      verifyVendor, approveVendor, suspendVendor, resolveDispute, escalateDispute, resolveRiskSignal, dismissRiskSignal,
+      allOrders: orders, vendors, users, disputes, riskSignals, campaigns, collections, adminNotifs, account,
+      verifyVendor, approveVendor, suspendVendor, resolveDispute, escalateDispute, deescalateDispute, resolveRiskSignal, dismissRiskSignal,
       banUser, unbanUser, adminActionOrder, addCampaign, launchCampaign, updateCampaign,
       addCollection, updateCollection, deleteCollection, publishCollection, archiveCollection,
       markAdminNotifRead, markAdminNotifsRead, updateAdminAccount, signOut,

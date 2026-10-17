@@ -54,7 +54,7 @@ export function LoginForm() {
 
   return (
     <AuthShell
-      title="Platform operations"
+      title="Platform Operations"
       subtitle="Sign in to manage orders, vendors and trust & safety."
       footer={
         <div className="mt-4 flex items-center justify-between gap-3 rounded-2xl border border-dashed border-line-strong bg-white/60 px-4 py-3">

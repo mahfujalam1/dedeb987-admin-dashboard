@@ -10,7 +10,7 @@ import { BrandLogo } from '@/components/ui/logo'
 import { useAdmin } from '@/context/admin-context'
 import { cn } from '@/lib/utils'
 
-type BadgeKey = 'orders' | 'disputes' | 'fraud' | 'vendors' | 'users' | 'campaigns'
+type BadgeKey = 'orders' | 'disputes' | 'fraud' | 'vendors' | 'users' | 'campaigns' | 'messages'
 type Icon = React.ComponentType<React.SVGProps<SVGSVGElement>>
 
 const NAV_GROUPS: { label: string; items: { to: string; label: string; Icon: Icon; badge?: BadgeKey }[] }[] = [
@@ -25,7 +25,8 @@ const NAV_GROUPS: { label: string; items: { to: string; label: string; Icon: Ico
     label: 'Trust & safety',
     items: [
       { to: '/admin/disputes', label: 'Customer disputes', Icon: MessageSquareWarningIcon, badge: 'disputes' },
-      { to: '/admin/fraud', label: 'Fraud prevention', Icon: ShieldAlertIcon, badge: 'fraud' },
+      // { to: '/admin/fraud', label: 'Fraud prevention', Icon: ShieldAlertIcon, badge: 'fraud' },
+      { to: '/admin/messages', label: 'Messages', Icon: MessageSquareWarningIcon, badge: 'messages' },
     ],
   },
   {
@@ -75,6 +76,7 @@ function NavItems({ onNavigate }: { onNavigate?: () => void }) {
     vendors: vendors.filter(v => v.verification === 'pending' || v.verification === 'unsubmitted').length,
     users: users.filter(u => u.status === 'flagged').length,
     campaigns: campaigns.filter(c => c.status === 'scheduled').length,
+    messages: 0, // Placeholder for messages count; replace with actual logic if needed
   }
 
   return (
@@ -305,7 +307,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         </header>
 
         <main ref={mainRef} className="scroll-thin flex-1 overflow-y-auto">
-          <div key={pathname} className="mx-auto max-w-6xl px-4 py-6 animate-rise sm:px-6 lg:px-8 lg:py-10">{children}</div>
+          <div key={pathname} className="w-full max-w-[1400px] mx-auto px-4 py-6 animate-rise sm:px-6 lg:px-8 lg:py-10">{children}</div>
         </main>
       </div>
     </div>

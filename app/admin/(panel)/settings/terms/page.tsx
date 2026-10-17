@@ -1,16 +1,87 @@
-import { LegalPage } from '@/components/admin/legal-page'
+'use client'
 
-// Placeholder copy — replace with the reviewed legal text before launch.
-const SECTIONS = [
-  { heading: 'About The Cut', body: 'The Cut is a marketplace that connects shoppers with independent wig vendors. The Cut is not the seller of record; each vendor is responsible for the products it lists and the orders it fulfils.' },
-  { heading: 'Accounts', body: 'You must provide accurate information when creating an account and keep your credentials secure. You are responsible for all activity under your account.' },
-  { heading: 'Orders and payments', body: 'Prices are set by vendors and shown in US dollars. Payment is taken when an order is placed. Delivery and pickup windows are estimates provided by the vendor.' },
-  { heading: 'Returns and disputes', body: 'Return eligibility follows each vendor’s policy. If you and a vendor cannot resolve an issue, you may open a dispute and The Cut will review it and decide on a resolution.' },
-  { heading: 'Vendor obligations', body: 'Vendors must describe products accurately, honour stated fulfilment times and comply with applicable laws. The Cut may suspend vendors who breach these terms.' },
-  { heading: 'Acceptable use', body: 'You may not misuse the platform, including fraudulent orders, chargeback abuse, or attempts to interfere with other users. We may suspend accounts flagged for risk.' },
-  { heading: 'Changes', body: 'We may update these terms from time to time. Continued use of The Cut after changes take effect means you accept the updated terms.' },
-]
+import { useEffect, useState } from 'react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { FileTextIcon, ShieldIcon } from 'lucide-react'
+import { toast } from 'sonner'
+import { PageHeader } from '@/components/admin/page-header'
+import { RichTextEditor } from '@/components/admin/rich-text-editor'
+import { initialTermsHtml } from '@/lib/data/legal-data'
 
-export default function TermsPage() {
-  return <LegalPage title="Terms of service" updated="Aug 1, 2026" sections={SECTIONS} />
+export default function TermsEditPage() {
+  const router = useRouter()
+  const [content, setContent] = useState(initialTermsHtml)
+  const [lastSaved, setLastSaved] = useState('Aug 1, 2026')
+  const [isSaving, setIsSaving] = useState(false)
+
+  // Load saved content from localStorage if available
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('thecut_legal_terms')
+      const savedDate = localStorage.getItem('thecut_legal_terms_date')
+      if (saved) setContent(saved)
+      if (savedDate) setLastSaved(savedDate)
+    } catch {
+      // localStorage fallback
+    }
+  }, [])
+
+  const handleSave = (newContent: string) => {
+    setIsSaving(true)
+    const now = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date())
+    try {
+      localStorage.setItem('thecut_legal_terms', newContent)
+      localStorage.setItem('thecut_legal_terms_date', now)
+    } catch {
+      // ignore
+    }
+    setContent(newContent)
+    setLastSaved(now)
+    setTimeout(() => {
+      setIsSaving(false)
+      toast.success('Terms of service published successfully!')
+    }, 400)
+  }
+
+  const handleCancel = () => {
+    router.push('/admin/settings')
+  }
+
+  return (
+    <>
+      <div className="flex items-center justify-between">
+        <Link href="/admin/settings" className="text-[12.5px] text-ink-muted hover:text-ink">
+          ← Back to settings
+        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/admin/settings/privacy"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-line bg-white px-3 py-1 text-[12px] font-medium text-ink-muted hover:border-ink hover:text-ink transition-colors"
+          >
+            <ShieldIcon className="h-3.5 w-3.5" />
+            <span>Switch to Privacy Policy</span>
+          </Link>
+        </div>
+      </div>
+
+      <div className="mt-3">
+        <PageHeader
+          eyebrow="Legal Documents"
+          title="Terms of Service Editor"
+          description={`Edit terms and conditions shown to shoppers and vendors. Last published ${lastSaved}.`}
+        />
+      </div>
+
+      <div className="mt-6">
+        <RichTextEditor
+          initialValue={content}
+          placeholder="Start with a heading, then write each clause as its own section..."
+          onSave={handleSave}
+          onCancel={handleCancel}
+          isSaving={isSaving}
+        />
+      </div>
+    </>
+  )
 }

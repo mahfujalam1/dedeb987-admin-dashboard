@@ -11,8 +11,16 @@ import { useAdmin } from '@/context/admin-context'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const LEGAL = [
-  { href: '/admin/settings/terms', label: 'Terms of service' },
-  { href: '/admin/settings/privacy', label: 'Privacy policy' },
+  {
+    href: '/admin/settings/terms',
+    label: 'Terms of service',
+    description: 'Boutique vendor agreements, order fulfillment, and dispute policies.',
+  },
+  {
+    href: '/admin/settings/privacy',
+    label: 'Privacy policy',
+    description: 'Data collection disclosures, payment security, and customer privacy rights.',
+  },
 ]
 
 export default function SettingsPage() {
@@ -59,16 +67,30 @@ export default function SettingsPage() {
       </Panel>
 
       <Panel title="Legal documents" className="mt-7">
-        <ul className="space-y-2.5">
+        <div className="space-y-3">
           {LEGAL.map(l => (
-            <li key={l.href}>
-              <Link href={l.href} className="flex items-center justify-between rounded-xl border border-line px-4 py-3.5 text-[13.5px] text-ink transition-colors duration-150 hover:bg-ivory">
-                {l.label}
-                <ChevronRightIcon className="h-4 w-4 text-ink-faint" />
-              </Link>
-            </li>
+            <Link
+              key={l.href}
+              href={l.href}
+              className="group flex items-center justify-between rounded-2xl border border-line bg-white p-4 transition-all duration-150 hover:border-ink hover:shadow-xs"
+            >
+              <div>
+                <p className="text-[14px] font-semibold text-ink group-hover:text-accent-600">
+                  {l.label}
+                </p>
+                <p className="mt-0.5 text-[12px] text-ink-muted">
+                  {l.description}
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="rounded-lg bg-ivory px-2.5 py-1 text-[11.5px] font-medium text-ink-soft group-hover:bg-ink group-hover:text-white transition-colors">
+                  Edit in WYSIWYG
+                </span>
+                <ChevronRightIcon className="h-4 w-4 text-ink-faint group-hover:text-ink transition-colors" />
+              </div>
+            </Link>
           ))}
-        </ul>
+        </div>
       </Panel>
 
       <Panel title="Danger zone" className="mt-7">
