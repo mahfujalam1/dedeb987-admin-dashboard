@@ -123,7 +123,7 @@ export function RefundModal({ order, isOpen, onClose, onConfirm }: RefundModalPr
         role="dialog"
         aria-modal="true"
         aria-labelledby="refund-modal-title"
-        className="relative flex max-h-[92dvh] w-full max-w-[520px] flex-col overflow-hidden rounded-t-3xl border border-line bg-white shadow-card animate-rise sm:max-h-[min(780px,calc(100dvh-2rem))] sm:rounded-3xl"
+        className="relative z-10 flex max-h-[86dvh] w-full max-w-[520px] flex-col overflow-hidden rounded-t-[28px] border border-line bg-white shadow-card animate-rise sm:max-h-[min(780px,calc(100dvh-2rem))] sm:rounded-3xl"
       >
         {/* Header */}
         <div className="flex items-start justify-between gap-4 border-b border-line px-6 py-5 sm:px-7">
@@ -326,13 +326,14 @@ export function RefundModal({ order, isOpen, onClose, onConfirm }: RefundModalPr
           </div>
 
           {/* Footer Actions */}
-          <div className="mt-6 flex flex-col-reverse gap-2 border-t border-line pt-4 sm:flex-row sm:justify-end">
-            <Button type="button" variant="outline" onClick={onClose}>
+          <div className="sticky bottom-0 z-30 -mx-6 -mb-5 mt-6 flex shrink-0 flex-row items-center justify-end gap-2.5 border-t border-line bg-white/95 backdrop-blur-md px-6 pt-3.5 pb-[max(2.25rem,calc(env(safe-area-inset-bottom)+1.5rem))] shadow-[0_-8px_24px_rgba(0,0,0,0.06)] sm:-mx-7 sm:-mb-5 sm:px-7 sm:py-4">
+            <Button type="button" variant="outline" className="h-11 flex-1 text-[13.5px] font-medium touch-manipulation sm:h-10 sm:flex-none" onClick={onClose}>
               Cancel
             </Button>
             <Button
               type="submit"
               variant="danger"
+              className="h-11 flex-1 text-[13.5px] font-medium touch-manipulation sm:h-10 sm:flex-none"
               disabled={!isAmountValid}
             >
               {isAmountValid ? `Refund ${currency(parsedAmount)}` : 'Enter valid amount'}

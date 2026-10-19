@@ -97,7 +97,7 @@ export function DisputeChatModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="dispute-chat-title"
-        className="relative flex h-[90dvh] w-full max-w-[700px] flex-col overflow-hidden rounded-t-3xl border border-line bg-white shadow-card animate-rise sm:h-[820px] sm:max-h-[min(820px,calc(100dvh-2rem))] sm:rounded-3xl"
+        className="relative z-10 flex max-h-[86dvh] h-full w-full max-w-[700px] flex-col overflow-hidden rounded-t-[28px] border border-line bg-white shadow-card animate-rise sm:h-[820px] sm:max-h-[min(820px,calc(100dvh-2rem))] sm:rounded-3xl"
       >
         {/* Header */}
         <div className="border-b border-line bg-white px-6 py-4">
@@ -257,7 +257,7 @@ export function DisputeChatModal({
         </form>
 
         {/* Footer Resolution Controls */}
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line bg-ivory-deep/40 px-6 py-3.5">
+        <div className="sticky bottom-0 z-30 flex shrink-0 flex-wrap items-center justify-between gap-3 border-t border-line bg-white/95 backdrop-blur-md px-6 pt-3 pb-[max(2rem,calc(env(safe-area-inset-bottom)+1.25rem))] shadow-[0_-8px_20px_rgba(0,0,0,0.06)] sm:py-3.5">
           <div className="flex items-center gap-2">
             {!isResolved && (
               <>

@@ -17,8 +17,19 @@ import { cn, currency } from '@/lib/utils'
 const detailBtnCls = 'inline-flex h-8 items-center rounded-lg border border-line-strong bg-white px-3 text-[12.5px] font-semibold text-ink transition-all duration-150 hover:border-ink hover:bg-ivory-deep'
 
 export default function VendorsPage() {
-  const { vendors, suspendVendor, verifyVendor } = useAdmin()
+  const { vendors, suspendVendor, verifyVendor, deleteVendor } = useAdmin()
   const confirm = useConfirm()
+
+  async function handleDelete(v: AdminVendor) {
+    const ok = await confirm({
+      title: `Permanently delete ${v.name}?`,
+      body: 'This will remove the vendor boutique and its listings from the platform. This action cannot be undone.',
+      confirmLabel: 'Delete vendor',
+      tone: 'danger',
+    })
+    if (!ok) return
+    deleteVendor(v.id)
+  }
 
   async function suspend(v: AdminVendor) {
     const ok = await confirm({
@@ -93,6 +104,9 @@ export default function VendorsPage() {
                   )}
                 </>
               )}
+              <Button size="sm" variant="outline" className="text-danger-600 hover:border-danger-500" onClick={() => handleDelete(v)}>
+                Delete
+              </Button>
             </div>
           </div>
         ))}

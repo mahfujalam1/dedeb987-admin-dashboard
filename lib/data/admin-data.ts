@@ -1,13 +1,72 @@
-import type { AppNotification, Order } from '@/lib/types'
+import type { AppNotification, Order, PlatformSettings } from '@/lib/types'
 const CDN = 'https://cdn.magicpatterns.com/patterns/generated-images'
 
-export interface AdminVendor { id: string; name: string; logo: string; status: 'active' | 'suspended' | 'pending'; verification: 'approved' | 'pending' | 'rejected' | 'unsubmitted'; gmv: number; activeProducts: number; openOrders: number; joinedAt: string; plan: string }
+export interface AdminVendor { id: string; name: string; logo: string; status: 'active' | 'suspended' | 'pending'; verification: 'approved' | 'pending' | 'rejected' | 'unsubmitted'; gmv: number; activeProducts: number; openOrders: number; joinedAt: string; plan: string; customCommissionRate?: number }
 export interface AdminUser { id: string; name: string; avatar: string; email: string; status: 'active' | 'suspended' | 'flagged'; joinedAt: string; orders: number; spent: number }
 export interface Dispute { id: string; orderId: string; customerName: string; vendorName: string; amount: number; reason: string; status: string; slaHoursLeft: number; openedAt: string }
-export interface RiskSignal { id: string; type: string; description: string; userId?: string; vendorId?: string; severity: 'low' | 'medium' | 'high'; status: 'open' | 'reviewing' | 'resolved'; flaggedAt: string }
+export interface RiskSignal { id: string; type: string; description: string; userId?: string; vendorId?: string; severity: 'low' | 'medium' | 'high'; status: 'open' | 'reviewing' | 'resolved'; flaggedAt: string; resolutionNote?: string; resolvedAt?: string }
 export interface Campaign { id: string; title: string; segment: string; message: string; status: 'draft' | 'scheduled' | 'sent'; scheduledAt?: string; sentAt?: string; recipients?: number }
 export interface Collection { id: string; title: string; eyebrow: string; description: string; wigIds: string[]; status: 'draft' | 'live' | 'archived'; position: number; slot?: 'hero'; startsOn?: string; endsOn?: string; createdAt: string; updatedAt: string }
 export interface WigStyle { id: string; title: string; image: string; searchTerm: string; active?: boolean; position?: number }
+export interface AiCreditPackage {
+  id: string
+  title: string
+  credits: number
+  price: number
+  perCreditLabel: string
+  badge?: string
+  isPopular?: boolean
+  description?: string
+  status: 'active' | 'archived'
+  salesCount: number
+  revenue: number
+  updatedAt: string
+}
+
+export const initialAiPackages: AiCreditPackage[] = [
+  {
+    id: 'first-date',
+    title: 'The First Date',
+    credits: 3,
+    price: 0.00,
+    perCreditLabel: 'Free daily',
+    badge: 'Free Tier',
+    isPopular: false,
+    description: 'Start with a little chemistry. Try before you commit with 3 AI wig try-ons per day.',
+    status: 'active',
+    salesCount: 1250,
+    revenue: 0,
+    updatedAt: 'Aug 16, 2026',
+  },
+  {
+    id: 'dating-phase',
+    title: 'The Dating Phase',
+    credits: 20,
+    price: 5.99,
+    perCreditLabel: '$0.30 / try',
+    badge: 'Most Popular',
+    isPopular: true,
+    description: 'Ready to explore your options? Keep the dates coming with 20 AI try-ons/month.',
+    status: 'active',
+    salesCount: 412,
+    revenue: 2467.88,
+    updatedAt: 'Aug 15, 2026',
+  },
+  {
+    id: 'quick-date',
+    title: 'The Quick Date',
+    credits: 4,
+    price: 2.00,
+    perCreditLabel: '$0.50 / try',
+    badge: 'Quick Top Up',
+    isPopular: false,
+    description: 'Not ready for a commitment? 4 AI try-ons one-time purchase with no subscription.',
+    status: 'active',
+    salesCount: 680,
+    revenue: 1360.00,
+    updatedAt: 'Aug 14, 2026',
+  },
+]
 
 export const initialWigStyles: WigStyle[] = [
   { id: 'style-1', title: 'Straight', image: '/wig-looks/straingth.jpg', searchTerm: 'Straight', active: true, position: 1 },
@@ -79,3 +138,10 @@ export const adminNotifications: AppNotification[] = [
   { id: 'an-02', kind: 'vendor', title: 'New vendor application', body: 'Atelier Blanc has submitted their verification documents.', at: '3 hrs ago', read: false, href: '/admin/vendors/v-04' },
   { id: 'an-03', kind: 'system', title: 'Weekly Sales report', body: 'Platform Total Sales this week: $42,800 (+18% vs. last week).', at: 'Yesterday', read: true },
 ]
+
+export const initialPlatformSettings: PlatformSettings = {
+  commissionRate: 10, // 10% admin split
+  flatFee: 0.00, // Optional fixed amount per order
+  feeType: 'percentage',
+}
+
