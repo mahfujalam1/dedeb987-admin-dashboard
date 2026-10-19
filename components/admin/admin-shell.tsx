@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import {
   BellIcon, BellRingIcon, ChevronRightIcon, LayersIcon, LayoutDashboardIcon, LogOutIcon, MenuIcon, MessageSquareWarningIcon,
-  SettingsIcon, ShieldAlertIcon, ShoppingBagIcon, StoreIcon, TrendingUpIcon, UsersIcon, XIcon,
+  SettingsIcon, ShieldAlertIcon, ShoppingBagIcon, SparklesIcon, StoreIcon, TrendingUpIcon, UsersIcon, XIcon,
 } from 'lucide-react'
 import { BrandLogo } from '@/components/ui/logo'
 import { useAdmin } from '@/context/admin-context'
@@ -40,6 +40,7 @@ const NAV_GROUPS: { label: string; items: { to: string; label: string; Icon: Ico
     label: 'Growth',
     items: [
       { to: '/admin/collections', label: 'Featured collections', Icon: LayersIcon },
+      { to: '/admin/packages', label: 'AI Packages', Icon: SparklesIcon },
       { to: '/admin/notifications', label: 'Push notifications', Icon: BellRingIcon, badge: 'campaigns' },
     ],
   },
@@ -306,8 +307,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           </div>
         </header>
 
-        <main ref={mainRef} className="scroll-thin flex-1 overflow-y-auto">
-          <div key={pathname} className="w-full max-w-[1400px] mx-auto px-4 py-6 animate-rise sm:px-6 lg:px-8 lg:py-10">{children}</div>
+        <main ref={mainRef} className="scroll-thin flex-1 overflow-y-auto overflow-x-hidden min-w-0">
+          <div key={pathname} className="w-full max-w-[1400px] mx-auto px-4 pt-6 pb-28 animate-rise sm:px-6 sm:pb-24 lg:px-8 lg:py-10 min-w-0">{children}</div>
         </main>
       </div>
     </div>

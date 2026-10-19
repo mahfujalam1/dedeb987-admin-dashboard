@@ -11,3 +11,9 @@ export interface Order {
 export interface AppNotification { id: string; kind: string; title: string; body: string; at: string; read: boolean; href?: string }
 export interface AdminAccount { id: string; name: string; email: string; role: string; avatar: string }
 export interface Wig { id: string; name: string; brand: string; vendorId: string; price: number; salePrice?: number; images: string[] }
+export interface PlatformSettings {
+  commissionRate: number // percentage per transaction (e.g. 10%)
+  flatFee: number // fixed dollar amount per transaction (e.g. $1.00 or $0.30)
+  feeType: 'percentage' | 'fixed' | 'both'
+}
+

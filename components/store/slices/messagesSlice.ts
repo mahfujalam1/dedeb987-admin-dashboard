@@ -77,8 +77,36 @@ export const messagesSlice = createSlice({
         state.activeConversationId = newConv.id;
       }
     },
+    openConversationForVendor: (state, action: PayloadAction<{ vendorId: string; vendorName: string }>) => {
+      const match = state.conversations.find(
+        (c) => c.vendorId === action.payload.vendorId || c.customerName.toLowerCase() === action.payload.vendorName.toLowerCase() || c.id === action.payload.vendorId
+      );
+      if (match) {
+        state.activeConversationId = match.id;
+        match.unreadCount = 0;
+      } else {
+        const newConv: Conversation = {
+          id: `conv-vendor-${action.payload.vendorId}`,
+          vendorId: action.payload.vendorId,
+          customerName: action.payload.vendorName,
+          preview: 'Started new direct chat with vendor atelier',
+          timestamp: 'Just now',
+          unreadCount: 0,
+          messages: [
+            {
+              id: `m-init-${Date.now()}`,
+              sender: 'customer',
+              text: `Hello ${action.payload.vendorName}, this is The Cut administrator team reaching out regarding your boutique.`,
+              time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            },
+          ],
+        };
+        state.conversations.unshift(newConv);
+        state.activeConversationId = newConv.id;
+      }
+    },
   },
 });
 
-export const { setActiveConversation, sendMessage, openConversationForUser } = messagesSlice.actions;
+export const { setActiveConversation, sendMessage, openConversationForUser, openConversationForVendor } = messagesSlice.actions;
 export default messagesSlice.reducer;

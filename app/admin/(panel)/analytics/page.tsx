@@ -5,57 +5,62 @@ import { StatCard } from '@/components/admin/stat-card'
 import { useAdmin } from '@/context/admin-context'
 import { wigs } from '@/lib/data/wigs'
 import { cn, currency } from '@/lib/utils'
-import { SERIES, axis, type Range } from '@/components/admin/analytics/analytics-data'
+import { SERIES, RANGE_METRICS, axis, type Range } from '@/components/admin/analytics/analytics-data'
 import { GmvChart } from '@/components/admin/analytics/gmv-chart'
 import { OrdersChart } from '@/components/admin/analytics/orders-chart'
 import { FulfillmentBreakdown } from '@/components/admin/analytics/fulfillment-breakdown'
-import { TopRankings } from '@/components/admin/analytics/top-rankings'
+import { TopRankings, type TopSellerItem } from '@/components/admin/analytics/top-rankings'
 import { TextureBreakdown } from '@/components/admin/analytics/texture-breakdown'
 
 export default function AnalyticsPage() {
   const { allOrders, vendors } = useAdmin()
-  const [range, setRange] = useState<Range>('30d')
+  const [range, setRange] = useState<Range>('Week')
 
   const data = SERIES[range]
-  const gmvAxis = axis(Math.max(...data.map(d => d.gmv)), 30000)
-  const ordersAxis = axis(Math.max(...data.map(d => d.orders)), 200)
+  const metrics = RANGE_METRICS[range]
 
-  const totalGmv = allOrders.reduce((sum, o) => sum + o.total, 0)
-  const avgOrder = allOrders.length ? totalGmv / allOrders.length : 0
+  const maxGmv = Math.max(...data.map(d => d.gmv))
+  const maxOrders = Math.max(...data.map(d => d.orders))
+  const gmvAxis = axis(maxGmv, range === 'Week' ? 500 : range === '30d' ? 10000 : 30000)
+  const ordersAxis = axis(maxOrders, range === 'Week' ? 1 : range === '30d' ? 20 : 50)
 
-  // 1. Pickup vs. Shipping calculations
-  const validOrders = allOrders.filter(o => o.status !== 'cancelled')
-  const pickupOrders = validOrders.filter(o => o.fulfillment === 'pickup')
-  const shippingOrders = validOrders.filter(o => o.fulfillment === 'delivery')
-
-  const pickupCount = pickupOrders.length
-  const shippingCount = shippingOrders.length
-  const totalCount = pickupCount + shippingCount
-
-  const pickupSales = pickupOrders.reduce((sum, o) => sum + o.total, 0)
-  const shippingSales = shippingOrders.reduce((sum, o) => sum + o.total, 0)
-  const totalSales = pickupSales + shippingSales
-
-  const pickupCountPct = totalCount ? Math.round((pickupCount / totalCount) * 100) : 0
-  const shippingCountPct = totalCount ? 100 - pickupCountPct : 0
-  const pickupSalesPct = totalSales ? Math.round((pickupSales / totalSales) * 100) : 0
-  const shippingSalesPct = totalSales ? 100 - pickupSalesPct : 0
-
-  const pickupAov = pickupCount ? pickupSales / pickupCount : 0
-  const shippingAov = shippingCount ? shippingSales / shippingCount : 0
-
-  // 2. Top Sellers (Top 5) calculation
-  const topSellers = [...vendors]
+  // Top Sellers per selected range (reconciled against platform orders)
+  const topSellers: TopSellerItem[] = vendors
     .map(v => {
-      const vendorOrders = allOrders.filter(o => o.vendorId === v.id && o.status !== 'cancelled')
-      const orderSales = vendorOrders.reduce((s, o) => s + o.total, 0)
+      if (range === 'Week') {
+        const vendorOrders = allOrders.filter(o => o.vendorId === v.id && o.status !== 'cancelled')
+        const orderSales = vendorOrders.reduce((s, o) => s + o.total, 0)
+        return {
+          id: v.id,
+          name: v.name,
+          logo: v.logo,
+          plan: v.plan,
+          computedGmv: orderSales,
+          allTimeGmv: v.gmv,
+          salesCount: vendorOrders.length,
+          activeProducts: v.activeProducts,
+        }
+      }
+
+      // Proportional period sales for multi-week/month ranges
+      const sellerShare: Record<string, { share: number; ordersMultiplier: number }> = {
+        'v-03': { share: 0.41, ordersMultiplier: 0.40 }, // Root & Reign
+        'v-01': { share: 0.38, ordersMultiplier: 0.38 }, // Maison Noir
+        'v-02': { share: 0.21, ordersMultiplier: 0.22 }, // Velvet Row
+      }
+
+      const conf = sellerShare[v.id] ?? { share: 0, ordersMultiplier: 0 }
+      const periodSales = Math.round(metrics.netSales * conf.share * 100) / 100
+      const periodOrders = Math.round(metrics.validOrdersCount * conf.ordersMultiplier)
+
       return {
         id: v.id,
         name: v.name,
         logo: v.logo,
         plan: v.plan,
-        computedGmv: v.gmv > 0 ? v.gmv : orderSales,
-        salesCount: vendorOrders.length + (v.openOrders || 0),
+        computedGmv: periodSales,
+        allTimeGmv: v.gmv,
+        salesCount: periodOrders,
         activeProducts: v.activeProducts,
       }
     })
@@ -64,9 +69,11 @@ export default function AnalyticsPage() {
 
   const totalTopSellersGmv = topSellers.reduce((sum, s) => sum + s.computedGmv, 0)
 
-  // 3. Top products list
+  // Top products list
   const topProducts = wigs.slice(0, 5).map((wig, idx) => {
-    const ordersCount = [48, 36, 29, 24, 18][idx]
+    const ordersMultiplier = range === 'Week' ? 1 : range === '30d' ? 6 : range === '90d' ? 16 : 35
+    const baseOrders = [4, 3, 3, 2, 1][idx]
+    const ordersCount = baseOrders * ordersMultiplier
     return {
       id: wig.id,
       name: wig.name,
@@ -80,14 +87,14 @@ export default function AnalyticsPage() {
   })
 
   return (
-    <>
+    <div className="w-full min-w-0 max-w-full overflow-hidden">
       <PageHeader
         eyebrow="Insight"
         title="Platform Analytics"
         description="High-level metrics across the entire marketplace."
         actions={
-          <div className="flex gap-2 sm:mt-10" role="group" aria-label="Time range">
-            {(['Week', '30d', '90d', '1y'] as Range[]).map(r => (
+          <div className="flex flex-wrap gap-2 sm:mt-10" role="group" aria-label="Time range">
+            {(['Week', '30d', '60d', '90d', '1y'] as Range[]).map(r => (
               <button
                 key={r}
                 onClick={() => setRange(r)}
@@ -104,50 +111,77 @@ export default function AnalyticsPage() {
         }
       />
 
+      {/* Top 4 Stat Cards — strictly synchronized with selected Range filter */}
       <div className="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Total Sales" value={currency(Math.round(totalGmv * 100) / 100)} hint="Across all orders" />
-        <StatCard label="Avg order value" value={currency(Math.round(avgOrder * 100) / 100)} hint={`${allOrders.length} orders`} />
         <StatCard
-          label="Pickup vs Shipping"
-          value={`${pickupCount} / ${shippingCount}`}
-          hint={`${pickupSalesPct}% Pickup · ${shippingSalesPct}% Shipping ($)`}
+          label="Total Sales"
+          value={currency(metrics.netSales)}
+          hint={
+            metrics.cancelledGmv > 0
+              ? `Gross: ${currency(metrics.grossSales)} (-${currency(metrics.cancelledGmv)} cancelled)`
+              : `Net sales across ${metrics.validOrdersCount} orders`
+          }
+        />
+        <StatCard
+          label="Avg order value"
+          value={currency(metrics.avgOrderValue)}
+          hint={`${metrics.validOrdersCount} valid orders (${metrics.totalOrders} total)`}
+        />
+        <StatCard
+          label="Pickup vs Shipping ($)"
+          value={`${currency(metrics.pickupSales)} / ${currency(metrics.shippingSales)}`}
+          hint={`${metrics.pickupOrdersCount} pickup (${metrics.pickupSalesPct}%) · ${metrics.shippingOrdersCount} shipping (${metrics.shippingSalesPct}%)`}
         />
         <StatCard
           label="Top Seller (#1)"
           value={topSellers[0]?.name ? (topSellers[0].name.length > 14 ? `${topSellers[0].name.slice(0, 14)}...` : topSellers[0].name) : 'Root & Reign'}
-          hint={`${currency(topSellers[0]?.computedGmv ?? 0)} Total Sales`}
+          hint={`${currency(topSellers[0]?.computedGmv ?? 0)} in ${metrics.periodLabel} · ${currency(topSellers[0]?.allTimeGmv ?? 0)} all-time`}
           tone="violet"
         />
       </div>
 
-      <GmvChart data={data} range={range} gmvAxis={gmvAxis} />
+      {/* Primary GMV Trend Chart */}
+      <div className="w-full min-w-0 overflow-hidden">
+        <GmvChart data={data} range={range} gmvAxis={gmvAxis} />
+      </div>
 
+      {/* Orders Volume Chart & Reconciled Fulfillment Breakdown */}
       <div className="mt-7 grid gap-5 lg:grid-cols-2">
-        <OrdersChart data={data} range={range} ordersAxis={ordersAxis} />
+        <div className="w-full min-w-0 overflow-hidden">
+          <OrdersChart data={data} range={range} ordersAxis={ordersAxis} />
+        </div>
         <FulfillmentBreakdown
-          pickupCount={pickupCount}
-          shippingCount={shippingCount}
-          pickupSales={pickupSales}
-          shippingSales={shippingSales}
-          pickupCountPct={pickupCountPct}
-          shippingCountPct={shippingCountPct}
-          pickupSalesPct={pickupSalesPct}
-          shippingSalesPct={shippingSalesPct}
-          pickupAov={pickupAov}
-          shippingAov={shippingAov}
+          pickupCount={metrics.pickupOrdersCount}
+          shippingCount={metrics.shippingOrdersCount}
+          pickupSales={metrics.pickupSales}
+          shippingSales={metrics.shippingSales}
+          pickupCountPct={metrics.pickupCountPct}
+          shippingCountPct={metrics.shippingCountPct}
+          pickupSalesPct={metrics.pickupSalesPct}
+          shippingSalesPct={metrics.shippingSalesPct}
+          pickupAov={metrics.pickupAov}
+          shippingAov={metrics.shippingAov}
+          grossSales={metrics.grossSales}
+          netSales={metrics.netSales}
+          cancelledGmv={metrics.cancelledGmv}
+          periodLabel={metrics.periodLabel}
         />
       </div>
 
+      {/* Top Rankings & Texture Distribution */}
       <div className="mt-7 grid gap-5 lg:grid-cols-3">
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-2 w-full min-w-0 overflow-hidden">
           <TopRankings
             topSellers={topSellers}
             totalTopSellersGmv={totalTopSellersGmv}
             topProducts={topProducts}
+            rangeLabel={metrics.periodLabel}
           />
         </div>
-        <TextureBreakdown />
+        <div className="w-full min-w-0 overflow-hidden">
+          <TextureBreakdown />
+        </div>
       </div>
-    </>
+    </div>
   )
 }

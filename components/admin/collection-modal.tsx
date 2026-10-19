@@ -60,7 +60,7 @@ export function CollectionModal({ editing, onClose, onSave }: { editing: Collect
         role="dialog"
         aria-modal="true"
         aria-labelledby="collection-modal-title"
-        className="relative flex max-h-[92dvh] w-full max-w-[760px] flex-col overflow-hidden rounded-t-3xl border border-line bg-white shadow-card animate-rise sm:max-h-[min(860px,calc(100dvh-3rem))] sm:rounded-3xl"
+        className="relative z-10 flex max-h-[86dvh] w-full max-w-[760px] flex-col overflow-hidden rounded-t-[28px] border border-line bg-white shadow-card animate-rise sm:max-h-[min(860px,calc(100dvh-3rem))] sm:rounded-3xl"
       >
         <div className="flex items-start justify-between gap-4 border-b border-line px-6 py-5 sm:px-8">
           <div>
@@ -154,13 +154,13 @@ export function CollectionModal({ editing, onClose, onSave }: { editing: Collect
           </Section>
         </form>
 
-        <div className="flex items-center justify-between gap-3 border-t border-line bg-ivory/40 px-6 py-4 sm:px-8">
+        <div className="sticky bottom-0 z-30 flex shrink-0 items-center justify-between gap-3 border-t border-line bg-white/95 backdrop-blur-md px-5 pt-3.5 pb-[max(2.25rem,calc(env(safe-area-inset-bottom)+1.5rem))] shadow-[0_-8px_24px_rgba(0,0,0,0.06)] sm:px-8 sm:py-4">
           <p className="hidden text-[12px] text-ink-muted sm:block">
             {canSave ? `${draft.wigIds.length} unit${draft.wigIds.length === 1 ? '' : 's'} · ${draft.status}` : 'Add a title and at least one unit to save.'}
           </p>
-          <div className="flex w-full justify-end gap-2 sm:w-auto">
-            <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
-            <Button type="submit" form="collection-form" disabled={!canSave}>{editing ? 'Save changes' : 'Create collection'}</Button>
+          <div className="flex w-full items-center justify-end gap-2.5 sm:w-auto">
+            <Button type="button" variant="outline" className="h-11 flex-1 text-[13.5px] font-medium touch-manipulation sm:h-10 sm:flex-none" onClick={onClose}>Cancel</Button>
+            <Button type="submit" form="collection-form" className="h-11 flex-1 text-[13.5px] font-medium touch-manipulation sm:h-10 sm:flex-none" disabled={!canSave}>{editing ? 'Save changes' : 'Create collection'}</Button>
           </div>
         </div>
       </div>
