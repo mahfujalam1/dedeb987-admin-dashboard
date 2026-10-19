@@ -3,15 +3,16 @@ import { createContext, useCallback, useContext, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { useConfirm } from '@/context/confirm-context'
-import type { AdminAccount, AppNotification, Order } from '@/lib/types'
+import type { AdminAccount, AppNotification, Order, PlatformSettings } from '@/lib/types'
 import {
   adminNotifications, adminUsers, adminVendors, campaigns as seedCampaigns, collections as seedCollections,
-  disputes as seedDisputes, platformOrders, riskSignals as seedRiskSignals,
-  type AdminUser, type AdminVendor, type Campaign, type Collection, type Dispute, type RiskSignal,
+  disputes as seedDisputes, initialAiPackages, initialPlatformSettings, platformOrders, riskSignals as seedRiskSignals,
+  type AdminUser, type AdminVendor, type AiCreditPackage, type Campaign, type Collection, type Dispute, type RiskSignal,
 } from '@/lib/data/admin-data'
 
 type NewCampaign = Omit<Campaign, 'id'> & { id?: string }
 type NewCollection = Omit<Collection, 'id'> & { id?: string }
+export type NewAiPackage = Omit<AiCreditPackage, 'id'> & { id?: string }
 
 interface AdminContextValue {
   allOrders: Order[]
@@ -21,15 +22,20 @@ interface AdminContextValue {
   riskSignals: RiskSignal[]
   campaigns: Campaign[]
   collections: Collection[]
+  aiPackages: AiCreditPackage[]
   adminNotifs: AppNotification[]
   account: AdminAccount
+  platformSettings: PlatformSettings
+  updatePlatformSettings: (patch: Partial<PlatformSettings>) => void
+  setVendorCommissionRate: (vendorId: string, rate: number | undefined) => void
   verifyVendor: (id: string, decision: 'approved' | 'rejected') => void
   approveVendor: (id: string) => void
   suspendVendor: (id: string, suspended?: boolean) => void
+  deleteVendor: (id: string) => void
   resolveDispute: (id: string, res: string) => void
   escalateDispute: (id: string) => void
   deescalateDispute: (id: string) => void
-  resolveRiskSignal: (id: string) => void
+  resolveRiskSignal: (id: string, note?: string) => void
   dismissRiskSignal: (id: string) => void
   banUser: (id: string) => void
   unbanUser: (id: string) => void
@@ -42,6 +48,10 @@ interface AdminContextValue {
   deleteCollection: (id: string) => void
   publishCollection: (id: string) => void
   archiveCollection: (id: string) => void
+  addAiPackage: (p: NewAiPackage) => void
+  updateAiPackage: (id: string, patch: Partial<AiCreditPackage>) => void
+  deleteAiPackage: (id: string) => void
+  toggleAiPackageStatus: (id: string) => void
   markAdminNotifRead: (id: string) => void
   markAdminNotifsRead: () => void
   updateAdminAccount: (patch: { name?: string; email?: string }) => Promise<void>
@@ -62,6 +72,17 @@ export function AdminProvider({ initialAccount, children }: { initialAccount: Ad
   const [adminNotifs, setAdminNotifs] = useState(adminNotifications)
   const [account, setAccount] = useState(initialAccount)
   const [orders, setOrders] = useState(platformOrders)
+  const [platformSettings, setPlatformSettings] = useState<PlatformSettings>(initialPlatformSettings)
+
+  const updatePlatformSettings = useCallback((patch: Partial<PlatformSettings>) => {
+    setPlatformSettings(prev => ({ ...prev, ...patch }))
+    toast.success('Platform commission & fee settings updated')
+  }, [])
+
+  const setVendorCommissionRate = useCallback((vendorId: string, rate: number | undefined) => {
+    setVendors(vs => vs.map(v => v.id === vendorId ? { ...v, customCommissionRate: rate } : v))
+    toast.success(rate !== undefined ? `Custom commission set to ${rate}%` : 'Reset to default platform rate')
+  }, [])
 
   const verifyVendor = useCallback((id: string, decision: 'approved' | 'rejected') => {
     setVendors(vs => vs.map(v => v.id === id ? { ...v, verification: decision, status: decision === 'approved' ? 'active' : 'pending' } : v))
@@ -87,10 +108,22 @@ export function AdminProvider({ initialAccount, children }: { initialAccount: Ad
     setDisputes(ds => ds.map(d => d.id === id ? { ...d, status: 'reviewing' } : d))
   }, [])
 
-  const resolveRiskSignal = useCallback((id: string) => {
-    setRiskSignals(rs => rs.map(r => r.id === id ? { ...r, status: 'resolved' } : r))
+  const deleteVendor = useCallback((id: string) => {
+    setVendors(vs => vs.filter(v => v.id !== id))
+    toast.success('Vendor deleted')
   }, [])
-  const dismissRiskSignal = resolveRiskSignal
+
+  const resolveRiskSignal = useCallback((id: string, note?: string) => {
+    setRiskSignals(rs => rs.map(r => r.id === id ? {
+      ...r,
+      status: 'resolved',
+      resolutionNote: note || 'Resolved by administrator',
+      resolvedAt: 'Just now',
+    } : r))
+  }, [])
+  const dismissRiskSignal = useCallback((id: string) => {
+    setRiskSignals(rs => rs.map(r => r.id === id ? { ...r, status: 'resolved', resolutionNote: 'Dismissed without action', resolvedAt: 'Just now' } : r))
+  }, [])
 
   const banUser = useCallback((id: string) => {
     setUsers(us => us.map(u => u.id === id ? { ...u, status: 'suspended' } : u))
@@ -141,6 +174,88 @@ export function AdminProvider({ initialAccount, children }: { initialAccount: Ad
   const deleteCollection = useCallback((id: string) => {
     setCollections(cs => cs.filter(c => c.id !== id))
   }, [])
+  const [aiPackages, setAiPackages] = useState<AiCreditPackage[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('thecut_ai_packages')
+        if (saved) return JSON.parse(saved)
+      } catch (_) {}
+    }
+    return initialAiPackages
+  })
+
+  const saveAiPackages = useCallback((pkgs: AiCreditPackage[]) => {
+    setAiPackages(pkgs)
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('thecut_ai_packages', JSON.stringify(pkgs))
+      } catch (_) {}
+    }
+  }, [])
+
+  const addAiPackage = useCallback((pkg: NewAiPackage) => {
+    const newPkg: AiCreditPackage = {
+      id: pkg.id || `pkg-${Date.now()}`,
+      title: pkg.title,
+      credits: pkg.credits,
+      price: pkg.price,
+      perCreditLabel: pkg.perCreditLabel || `$${(pkg.price / Math.max(1, pkg.credits)).toFixed(2)} / try`,
+      badge: pkg.badge,
+      isPopular: pkg.isPopular ?? false,
+      description: pkg.description ?? '',
+      status: pkg.status ?? 'active',
+      salesCount: pkg.salesCount ?? 0,
+      revenue: pkg.revenue ?? 0,
+      updatedAt: 'Just now',
+    }
+    setAiPackages(prev => {
+      const updated = [newPkg, ...prev]
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('thecut_ai_packages', JSON.stringify(updated)) } catch (_) {}
+      }
+      return updated
+    })
+    toast.success(`Package "${newPkg.title}" created`)
+  }, [])
+
+  const updateAiPackage = useCallback((id: string, patch: Partial<AiCreditPackage>) => {
+    setAiPackages(prev => {
+      const updated = prev.map(p => p.id === id ? { ...p, ...patch, updatedAt: 'Just now' } : p)
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('thecut_ai_packages', JSON.stringify(updated)) } catch (_) {}
+      }
+      return updated
+    })
+    toast.success('Package updated')
+  }, [])
+
+  const deleteAiPackage = useCallback((id: string) => {
+    setAiPackages(prev => {
+      const updated = prev.filter(p => p.id !== id)
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('thecut_ai_packages', JSON.stringify(updated)) } catch (_) {}
+      }
+      return updated
+    })
+    toast.success('Package deleted')
+  }, [])
+
+  const toggleAiPackageStatus = useCallback((id: string) => {
+    setAiPackages(prev => {
+      let nextStatus = 'active'
+      const updated = prev.map(p => {
+        if (p.id !== id) return p
+        nextStatus = p.status === 'active' ? 'archived' : 'active'
+        return { ...p, status: nextStatus as 'active' | 'archived', updatedAt: 'Just now' }
+      })
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('thecut_ai_packages', JSON.stringify(updated)) } catch (_) {}
+      }
+      toast.success(`Package ${nextStatus === 'active' ? 'activated' : 'archived'}`)
+      return updated
+    })
+  }, [])
+
   const publishCollection = useCallback((id: string) => updateCollection(id, { status: 'live' }), [updateCollection])
   const archiveCollection = useCallback((id: string) => updateCollection(id, { status: 'archived' }), [updateCollection])
 
@@ -178,10 +293,12 @@ export function AdminProvider({ initialAccount, children }: { initialAccount: Ad
 
   return (
     <AdminContext.Provider value={{
-      allOrders: orders, vendors, users, disputes, riskSignals, campaigns, collections, adminNotifs, account,
-      verifyVendor, approveVendor, suspendVendor, resolveDispute, escalateDispute, deescalateDispute, resolveRiskSignal, dismissRiskSignal,
+      allOrders: orders, vendors, users, disputes, riskSignals, campaigns, collections, aiPackages, adminNotifs, account,
+      platformSettings, updatePlatformSettings, setVendorCommissionRate,
+      verifyVendor, approveVendor, suspendVendor, deleteVendor, resolveDispute, escalateDispute, deescalateDispute, resolveRiskSignal, dismissRiskSignal,
       banUser, unbanUser, adminActionOrder, addCampaign, launchCampaign, updateCampaign,
       addCollection, updateCollection, deleteCollection, publishCollection, archiveCollection,
+      addAiPackage, updateAiPackage, deleteAiPackage, toggleAiPackageStatus,
       markAdminNotifRead, markAdminNotifsRead, updateAdminAccount, signOut,
     }}>
       {children}

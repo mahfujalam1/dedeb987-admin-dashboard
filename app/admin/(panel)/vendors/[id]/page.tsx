@@ -1,8 +1,8 @@
 'use client'
 import { useState } from 'react'
 import Link from 'next/link'
-import { useParams } from 'next/navigation'
-import { ExternalLinkIcon, PackageIcon, SearchIcon, StoreIcon } from 'lucide-react'
+import { useParams, useRouter } from 'next/navigation'
+import { ExternalLinkIcon, PackageIcon, SearchIcon, StoreIcon, Trash2Icon, MessageSquareIcon } from 'lucide-react'
 import { toast } from 'sonner'
 import { PageHeader } from '@/components/admin/page-header'
 import { DetailRow, Panel } from '@/components/admin/panel'
@@ -18,8 +18,9 @@ import { wigs } from '@/lib/data/wigs'
 import { currency } from '@/lib/utils'
 
 export default function VendorDetailPage() {
+  const router = useRouter()
   const { id } = useParams<{ id: string }>()
-  const { vendors, suspendVendor, verifyVendor } = useAdmin()
+  const { vendors, suspendVendor, verifyVendor, deleteVendor, platformSettings } = useAdmin()
   const confirm = useConfirm()
   const [storeModalOpen, setStoreModalOpen] = useState(false)
   const [searchProduct, setSearchProduct] = useState('')
@@ -69,6 +70,18 @@ export default function VendorDetailPage() {
     toast(`${v.name} application rejected`)
   }
 
+  async function handleDeleteVendor() {
+    const ok = await confirm({
+      title: `Permanently delete ${v.name}?`,
+      body: 'This will remove the vendor boutique and its catalog from the platform. This action cannot be undone.',
+      confirmLabel: 'Delete vendor',
+      tone: 'danger',
+    })
+    if (!ok) return
+    deleteVendor(v.id)
+    router.push('/admin/vendors')
+  }
+
   return (
     <>
       <Link href="/admin/vendors" className="text-[12.5px] text-ink-muted hover:text-ink">← Back to vendors</Link>
@@ -102,6 +115,23 @@ export default function VendorDetailPage() {
             </DetailRow>
             <DetailRow label="Open orders">{vendor.openOrders}</DetailRow>
             <DetailRow label="Plan">{vendor.plan}</DetailRow>
+            <DetailRow label="Transaction Split">
+              <div className="flex items-center gap-1.5">
+                <span className="font-semibold text-accent-700">
+                  {platformSettings.feeType === 'percentage'
+                    ? `${platformSettings.commissionRate}% Admin Cut`
+                    : platformSettings.feeType === 'fixed'
+                    ? `$${platformSettings.flatFee.toFixed(2)} Admin Flat Fee`
+                    : `${platformSettings.commissionRate}% + $${platformSettings.flatFee.toFixed(2)}`}
+                </span>
+                <Link
+                  href="/admin/settings"
+                  className="text-[11px] font-medium text-ink-muted hover:text-ink underline ml-1"
+                >
+                  Edit in Settings
+                </Link>
+              </div>
+            </DetailRow>
             <DetailRow label="Joined">{vendor.joinedAt}</DetailRow>
             <DetailRow label="Verification">{verification}</DetailRow>
           </div>
@@ -239,7 +269,16 @@ export default function VendorDetailPage() {
             </>
           )}
           <Button variant="outline" onClick={() => setStoreModalOpen(true)}>Open Storefront</Button>
-          <Button variant="outline" onClick={() => toast.success(`Message sent to ${vendor.name}`)}>Send message</Button>
+          <Button
+            variant="outline"
+            icon={<MessageSquareIcon className="h-4 w-4" />}
+            onClick={() => router.push(`/admin/messages?vendorId=${vendor.id}`)}
+          >
+            Send message
+          </Button>
+          <Button variant="danger" icon={<Trash2Icon className="h-4 w-4" />} onClick={handleDeleteVendor}>
+            Delete vendor
+          </Button>
         </div>
       </Panel>
 

@@ -157,6 +157,35 @@ export function VendorStorefrontModal({ vendor, isOpen, onClose }: VendorStorefr
           <div className="p-6 sm:p-8">
             {activeTab === 'products' ? (
               <>
+                {/* Wig Dates AI Try-On Feature Banner */}
+                <div className="mb-6 rounded-2xl border border-[#C4A887]/50 bg-gradient-to-r from-[#FBF8F5] via-[#F6EFEA] to-[#F1E6DE] p-4 sm:p-5 shadow-xs">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="flex items-start gap-3.5">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#0C090E] text-white shadow-xs">
+                        <SparklesIcon className="h-5 w-5 text-amber-300" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="rounded-full bg-[#0C090E] px-2.5 py-0.5 text-[10px] font-bold text-white tracking-wide">
+                            WIG DATES™
+                          </span>
+                          <span className="text-[13.5px] font-semibold text-ink">
+                            AI Virtual Try-On Enabled
+                          </span>
+                        </div>
+                        <p className="mt-1 text-[12.5px] leading-relaxed text-ink-muted">
+                          Shoppers can test all wigs from <strong className="text-ink">{vendor.name}</strong> on their own photo before purchasing using AI Wig Matches.
+                        </p>
+                      </div>
+                    </div>
+                    <div className="shrink-0 flex items-center gap-2">
+                      <span className="rounded-xl border border-line bg-white/90 px-3 py-1.5 text-[11.5px] font-semibold text-ink shadow-2xs">
+                        ✨ 3 Free Daily Dates
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
                 <div className="mb-5 flex items-center justify-between">
                   <h3 className="font-display text-[18px] font-medium text-ink">
                     All Collection Pieces ({vendorProducts.length})
@@ -190,6 +219,9 @@ export function VendorStorefrontModal({ vendor, isOpen, onClose }: VendorStorefr
                               Sale
                             </span>
                           )}
+                          <span className="absolute top-2.5 right-2.5 rounded-full bg-white/90 backdrop-blur-xs px-2 py-0.5 text-[10px] font-semibold text-ink shadow-xs">
+                            ✨ Try-On Ready
+                          </span>
                         </div>
                         <div className="flex flex-1 flex-col justify-between p-4">
                           <div>

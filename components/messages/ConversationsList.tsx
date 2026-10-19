@@ -3,8 +3,8 @@
 import React from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { setActiveConversation, openConversationForUser } from '../store/slices/messagesSlice';
-import { adminUsers } from '@/lib/data/admin-data';
+import { setActiveConversation, openConversationForUser, openConversationForVendor } from '../store/slices/messagesSlice';
+import { adminUsers, adminVendors } from '@/lib/data/admin-data';
 
 export default function ConversationsList() {
   const [activeTab, setActiveTab] = React.useState<'vendors' | 'customers'>('vendors');
@@ -18,15 +18,13 @@ export default function ConversationsList() {
     const orderId = searchParams.get('orderId');
     const convId = searchParams.get('convId');
     const userId = searchParams.get('userId');
-    if (convId) {
-      dispatch(setActiveConversation(convId));
-    } else if (orderId) {
-      const match = conversations.find(
-        (c) => c.orderId === orderId || c.orderRe?.includes(orderId)
-      );
-      if (match) {
-        dispatch(setActiveConversation(match.id));
-      }
+    const vendorId = searchParams.get('vendorId');
+
+    if (vendorId) {
+      setActiveTab('vendors');
+      const targetVendor = adminVendors.find((v) => v.id === vendorId);
+      const vName = targetVendor ? targetVendor.name : `Vendor ${vendorId}`;
+      dispatch(openConversationForVendor({ vendorId, vendorName: vName }));
     } else if (userId) {
       setActiveTab('customers');
       const targetUser = adminUsers.find((u) => u.id === userId);
@@ -37,6 +35,15 @@ export default function ConversationsList() {
         if (match) {
           dispatch(setActiveConversation(match.id));
         }
+      }
+    } else if (convId) {
+      dispatch(setActiveConversation(convId));
+    } else if (orderId) {
+      const match = conversations.find(
+        (c) => c.orderId === orderId || c.orderRe?.includes(orderId)
+      );
+      if (match) {
+        dispatch(setActiveConversation(match.id));
       }
     }
   }, [searchParams, conversations, dispatch]);

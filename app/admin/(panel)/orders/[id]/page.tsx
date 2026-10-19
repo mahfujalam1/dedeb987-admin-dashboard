@@ -180,10 +180,10 @@ export default function OrderDetailPage() {
           >
             {order.flaggedForReview ? 'Flagged for review' : 'Flag for review'}
           </Button>
-          <Link href={`/admin/messages`} className="shrink-0">
+          <Link href={`/admin/messages?userId=${customerUser?.id || order.customerName}&orderId=${order.id}`} className="shrink-0">
             <Button variant="outline">Contact customer</Button>
           </Link>
-          <Link href={`/admin/messages`} className="shrink-0">
+          <Link href={`/admin/messages?vendorId=${vendor?.id}&orderId=${order.id}`} className="shrink-0">
             <Button variant="outline">Contact vendor</Button>
           </Link>
         </div>

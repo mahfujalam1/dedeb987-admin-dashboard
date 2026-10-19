@@ -62,7 +62,7 @@ export default function NotificationsPage() {
         </form>
       </Panel>
 
-      <Panel title="Campaign history" padded={false} className="mt-7">
+      {/* <Panel title="Campaign history" padded={false} className="mt-7">
         {campaigns.length === 0 ? (
           <EmptyState icon={<BellRingIcon className="h-5 w-5" />} title="No campaigns yet" body="Notifications you send will show up here." />
         ) : (
@@ -89,7 +89,7 @@ export default function NotificationsPage() {
             ))}
           </ul>
         )}
-      </Panel>
+      </Panel> */}
     </>
   )
 }

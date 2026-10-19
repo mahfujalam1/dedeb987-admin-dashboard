@@ -92,6 +92,8 @@ export interface Conversation {
   id: string;
   customerName: string;
   vendorName?: string;
+  vendorId?: string;
+  userId?: string;
   orderId?: string;
   productRe?: string;
   orderRe?: string;
